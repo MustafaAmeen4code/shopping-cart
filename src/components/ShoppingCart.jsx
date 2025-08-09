@@ -7,14 +7,16 @@ const ShoppingCart = (props) => {
       <button className="btn btn-secondary btn-sm m-2" onClick={props.onReset}>
         Reset
       </button>
-      {props.products.map((product) => (
-        <Product
-          key={product.id}
-          product={product}
-          onIncrement={props.onIncrement}
-          onDelete={props.onDelete}
-        />
-      ))}
+      {props.products
+        .filter((product) => product.isInCart)
+        .map((product) => (
+          <Product
+            key={product.id}
+            product={product}
+            onIncrement={props.onIncrement}
+            onDelete={props.onDelete}
+          />
+        ))}
     </React.Fragment>
   );
 };
