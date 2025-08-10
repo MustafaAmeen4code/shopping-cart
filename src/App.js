@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import MenuPage from "./pages/MenuPage";
 import ErrorPage from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       },
       { path: "menu", element: <MenuPage /> },
       { path: "cart", element: <CartPage /> },
+      { path: "login", element: <LoginPage /> },
     ],
   },
 ]);

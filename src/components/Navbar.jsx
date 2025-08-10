@@ -26,6 +26,15 @@ const Navbar = (props) => {
       >
         Menu
       </NavLink>
+      <NavLink
+        to={"/login"}
+        className="navbar-brand "
+        style={({ isActive }) => ({
+          color: isActive ? activeStyle : inActiveStyle,
+        })}
+      >
+        Login
+      </NavLink>
       <NavLink to={"/cart"} className="navbar-brand ">
         <span
           className="badge badge-primary bg-light text-dark"
