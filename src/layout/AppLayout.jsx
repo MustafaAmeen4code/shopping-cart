@@ -1,16 +1,21 @@
 import React, { useState } from "react";
+import axios from "axios";
 import Navbar from "../components/Navbar";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLoaderData } from "react-router-dom";
+
+export async function productsLoader() {
+  try {
+    const res = await axios.get(`http://localhost:3000/products`);
+
+    return res.data;
+  } catch (error) {
+    throw new Response("Failed to load users", { status: 500 });
+  }
+}
 
 const AppLayout = () => {
-  const [products, setProducts] = useState([
-    { id: 1, name: "Product 1", price: 10.0, quantity: 1, isInCart: false },
-    { id: 2, name: "Product 2", price: 20.0, quantity: 1, isInCart: false },
-    { id: 3, name: "Product 3", price: 30.0, quantity: 1, isInCart: false },
-    { id: 4, name: "Product 4", price: 20.0, quantity: 1, isInCart: false },
-    { id: 5, name: "Product 5", price: 70.0, quantity: 1, isInCart: false },
-    { id: 6, name: "Product 6", price: 100.0, quantity: 1, isInCart: false },
-  ]);
+  const data = useLoaderData();
+  const [products, setProducts] = useState(data);
 
   const incrementHandler = (productId) => {
     setProducts((prevProducts) =>
@@ -42,6 +47,67 @@ const AppLayout = () => {
       )
     );
   };
+  const addProductHandler = async (newProduct) => {
+    // Optimistically add product with a temporary ID
+    const tempId = Date.now().toString();
+    const optimisticProduct = { ...newProduct, id: tempId };
+    setProducts((prev) => [...prev, optimisticProduct]);
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/products",
+        newProduct
+      );
+      setProducts((prev) =>
+        prev.map((product) => (product.id === tempId ? res.data : product))
+      );
+    } catch (error) {
+      // Rollback on error
+      setProducts((prev) => prev.filter((product) => product.id !== tempId));
+      alert("Failed to add product.");
+    }
+  };
+
+  const deleteProductHandler = async (productId) => {
+    // Optimistically remove product
+    const prevProducts = products;
+    setProducts((prev) => prev.filter((product) => product.id !== productId));
+    try {
+      await axios.delete(`http://localhost:3000/products/${productId}`);
+    } catch (error) {
+      // Rollback on error
+      setProducts(prevProducts);
+      alert("Failed to delete product.");
+    }
+  };
+
+  const editProductHandler = async (updatedProduct, id) => {
+    // Optimistically update product
+    const prevProducts = products;
+    setProducts((prev) =>
+      prev.map((product) =>
+        String(product.id) === String(id)
+          ? { ...product, ...updatedProduct }
+          : product
+      )
+    );
+    try {
+      const res = await axios.put(
+        `http://localhost:3000/products/${id}`,
+        updatedProduct
+      );
+      setProducts((prev) =>
+        prev.map((product) =>
+          String(product.id) === String(id)
+            ? { ...product, ...res.data }
+            : product
+        )
+      );
+    } catch (error) {
+      // Rollback on error
+      setProducts(prevProducts);
+      alert("Failed to edit product.");
+    }
+  };
   return (
     <>
       <Navbar productsCount={products.filter((p) => p.isInCart).length} />
@@ -53,6 +119,9 @@ const AppLayout = () => {
             deleteHandler,
             resetHandler,
             selectProductHandler,
+            addProductHandler,
+            deleteProductHandler,
+            editProductHandler,
           }}
         />
       </main>
